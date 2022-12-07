@@ -1,25 +1,73 @@
-import 'dart:convert';
+import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'ApiCall.dart';
-import 'UniversityModel.dart';
+import 'package:json_listview/ApiCall.dart';
+import 'CountryData.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: CountryScreen(),
+  ));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class CountryScreen extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: HttpScreen(),
-    );
-  }
+  State<CountryScreen> createState() => _CountryScreenState();
 }
 
-class HttpScreen extends StatelessWidget {
-  const HttpScreen({super.key});
+class _CountryScreenState extends State<CountryScreen> {
+  late StreamSubscription subscription;
+  bool isConnected = false;
+  bool isAlertSet = false;
+
+  @override
+  void initState() {
+    checkConnectivity();
+    super.initState();
+  }
+
+  checkConnectivity() =>
+      subscription = Connectivity().onConnectivityChanged.listen(
+        (ConnectivityResult result) async {
+          isConnected = await InternetConnectionChecker().hasConnection;
+          if (!isConnected && isAlertSet == false) {
+            showDialogBox();
+            setState(() => isAlertSet = true);
+          }
+        },
+      );
+
+  @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
+  }
+
+  showDialogBox() => showCupertinoDialog<String>(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: const Text('No internet connection'),
+          content:
+              const Text('Please check your internet connection and try again'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                setState(() => isAlertSet = false);
+                isConnected = await InternetConnectionChecker().hasConnection;
+                if (!isConnected && isAlertSet == false) {
+                  showDialogBox();
+                  setState(() => isAlertSet = true);
+                }
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -36,39 +84,42 @@ class HttpScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Center(
-            child: FutureBuilder<List<UniversityModel>>(
-              future: getUniversityData(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        elevation: 8,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        margin: const EdgeInsets.all(6),
-                        child: Padding(
-                          padding: const EdgeInsets.all(14),
-                          child: ListTile(
-                            title: Text(
-                              snapshot.data![index].name.toString(),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w500),
+            child: ListView.builder(
+              itemCount: countryData.length,
+              itemBuilder: ((context, index) {
+                return Card(
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  margin: const EdgeInsets.all(6),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: ListTile(
+                      leading: SizedBox(
+                        width: 60,
+                        height: 60,
+                        child: Image.network(countryData[index].ImageUrl),
+                      ),
+                      title: Text(
+                        countryData[index].names,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios_rounded),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ApiCall(
+                              index: index,
+                              universityModel: countryData,
                             ),
-                            subtitle:
-                                Text(snapshot.data![index].country.toString()),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                } else if (snapshot.hasError) {
-                  return Text('${snapshot.error}');
-                }
-                return const CircularProgressIndicator();
-              },
+                        );
+                      },
+                    ),
+                  ),
+                );
+              }),
             ),
           ),
         ),
