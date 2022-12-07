@@ -81,6 +81,23 @@ class _ApiCallState extends State<ApiCall> {
             );
           },
         ),
+        floatingActionButton: FloatingActionButton(
+          child: Container(
+            width: 100,
+            height: 60,
+            decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: [
+                  Color.fromARGB(255, 223, 136, 255),
+                  Color.fromARGB(255, 138, 235, 255),
+                ])),
+            child: const Icon(Icons.arrow_back_ios_rounded),
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );
   }
