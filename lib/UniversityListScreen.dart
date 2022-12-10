@@ -1,34 +1,68 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:json_listview/main.dart';
 import 'UniversityModel.dart';
 import 'package:http/http.dart' as http;
 import 'CountryData.dart';
 
-class ApiCall extends StatefulWidget {
+class UniversityListScreen extends StatefulWidget {
   final List<CountryData> universityModel;
   int index;
-  ApiCall({Key? key, required this.index, required this.universityModel})
+  UniversityListScreen(
+      {Key? key, required this.index, required this.universityModel})
       : super(key: key);
 
   @override
-  State<ApiCall> createState() => _ApiCallState();
+  State<UniversityListScreen> createState() => _UniversityListScreenState();
 }
 
-class _ApiCallState extends State<ApiCall> {
+class _UniversityListScreenState extends State<UniversityListScreen> {
+  showDialogBox() => showCupertinoDialog<String>(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: const Text('No internet connection'),
+          content:
+              const Text('Please check your internet connection and try again'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() {});
+              },
+              child: const Text('Retry'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => CountryScreen(),
+                  ),
+                );
+              },
+              child: const Text('Back'),
+            ),
+          ],
+        ),
+      );
+
   Future<List<UniversityModel>> getUniversityData() async {
     var serverURL = 'http://universities.hipolabs.com/search?country=';
     var key = widget.universityModel[widget.index].names;
     var url = '$serverURL$key';
-    var response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      List jsonResponse = jsonDecode(response.body);
-
-      return jsonResponse
-          .map((data) => UniversityModel.fromJson(data))
-          .toList();
-    } else {
-      throw Exception();
+    try {
+      var response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body);
+        return jsonResponse
+            .map((data) => UniversityModel.fromJson(data))
+            .toList();
+      }
+    } on SocketException {
+      showDialogBox();
     }
+    return [];
   }
 
   @override

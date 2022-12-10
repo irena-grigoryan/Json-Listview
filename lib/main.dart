@@ -1,10 +1,6 @@
-import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:json_listview/ApiCall.dart';
+import 'package:json_listview/UniversityListScreen.dart';
 import 'CountryData.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -19,56 +15,6 @@ class CountryScreen extends StatefulWidget {
 }
 
 class _CountryScreenState extends State<CountryScreen> {
-  late StreamSubscription subscription;
-  bool isConnected = false;
-  bool isAlertSet = false;
-
-  @override
-  void initState() {
-    checkConnectivity();
-    super.initState();
-  }
-
-  checkConnectivity() =>
-      subscription = Connectivity().onConnectivityChanged.listen(
-        (ConnectivityResult result) async {
-          isConnected = await InternetConnectionChecker().hasConnection;
-          if (!isConnected && isAlertSet == false) {
-            showDialogBox();
-            setState(() => isAlertSet = true);
-          }
-        },
-      );
-
-  @override
-  void dispose() {
-    subscription.cancel();
-    super.dispose();
-  }
-
-  showDialogBox() => showCupertinoDialog<String>(
-        context: context,
-        builder: (BuildContext context) => CupertinoAlertDialog(
-          title: const Text('No internet connection'),
-          content:
-              const Text('Please check your internet connection and try again'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                setState(() => isAlertSet = false);
-                isConnected = await InternetConnectionChecker().hasConnection;
-                if (!isConnected && isAlertSet == false) {
-                  showDialogBox();
-                  setState(() => isAlertSet = true);
-                }
-              },
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -109,7 +55,7 @@ class _CountryScreenState extends State<CountryScreen> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => ApiCall(
+                            builder: (context) => UniversityListScreen(
                               index: index,
                               universityModel: countryData,
                             ),
