@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:json_listview/main.dart';
 import 'UniversityModel.dart';
 import 'package:http/http.dart' as http;
 import 'CountryData.dart';
@@ -19,6 +18,8 @@ class UniversityListScreen extends StatefulWidget {
 }
 
 class _UniversityListScreenState extends State<UniversityListScreen> {
+  List<UniversityModel> universities = [];
+
   showDialogBox() => showCupertinoDialog<String>(
         context: context,
         builder: (BuildContext context) => CupertinoAlertDialog(
@@ -35,11 +36,7 @@ class _UniversityListScreenState extends State<UniversityListScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => CountryScreen(),
-                  ),
-                );
+                Navigator.of(context).popUntil((route) => route.isFirst);
               },
               child: const Text('Back'),
             ),
@@ -62,7 +59,7 @@ class _UniversityListScreenState extends State<UniversityListScreen> {
     } on SocketException {
       showDialogBox();
     }
-    return [];
+    return universities = [];
   }
 
   @override
@@ -74,7 +71,7 @@ class _UniversityListScreenState extends State<UniversityListScreen> {
               end: Alignment.bottomRight,
               colors: [
             Color.fromARGB(255, 138, 235, 255),
-            Color.fromARGB(255, 223, 136, 255)
+            Color.fromARGB(255, 223, 136, 255),
           ])),
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -82,28 +79,31 @@ class _UniversityListScreenState extends State<UniversityListScreen> {
           future: getUniversityData(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return ListView.builder(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    margin: const EdgeInsets.all(6),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: ListTile(
-                        title: Text(
-                          snapshot.data![index].name.toString(),
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        subtitle:
-                            Text(snapshot.data![index].country.toString()),
+              return RefreshIndicator(
+                onRefresh: getUniversityData,
+                child: ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    return Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
                       ),
-                    ),
-                  );
-                },
+                      margin: const EdgeInsets.all(6),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: ListTile(
+                          title: Text(
+                            snapshot.data![index].name.toString(),
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          subtitle:
+                              Text(snapshot.data![index].country.toString()),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               );
             } else if (snapshot.hasError) {
               return Text('${snapshot.error}');

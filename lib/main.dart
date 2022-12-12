@@ -24,7 +24,7 @@ class _CountryScreenState extends State<CountryScreen> {
               end: Alignment.bottomRight,
               colors: [
             Color.fromARGB(255, 138, 235, 255),
-            Color.fromARGB(255, 223, 136, 255)
+            Color.fromARGB(255, 223, 136, 255),
           ])),
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -43,10 +43,16 @@ class _CountryScreenState extends State<CountryScreen> {
                     padding: const EdgeInsets.all(14),
                     child: ListTile(
                       leading: SizedBox(
-                        width: 60,
-                        height: 60,
-                        child: Image.network(countryData[index].ImageUrl),
-                      ),
+                          width: 60,
+                          height: 60,
+                          child: FadeInImage.assetNetwork(
+                            imageErrorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                  'lib/assets/image-not-found.png');
+                            },
+                            placeholder: 'lib/assets/image-not-found.png',
+                            image: countryData[index].imageUrl,
+                          )),
                       title: Text(
                         countryData[index].names,
                         style: const TextStyle(fontWeight: FontWeight.w500),

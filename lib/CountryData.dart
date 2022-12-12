@@ -15,9 +15,9 @@ List<String> url = [
 ];
 
 class CountryData {
-  final String names, ImageUrl;
-  CountryData(this.names, this.ImageUrl);
+  final String names, imageUrl;
+  CountryData(this.names, this.imageUrl);
 }
 
 final List<CountryData> countryData = List.generate(
-    names.length, (index) => CountryData('${names[index]}', '${url[index]}'));
+    names.length, (index) => CountryData(names[index], url[index]));
